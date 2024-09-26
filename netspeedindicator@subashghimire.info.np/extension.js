@@ -30,12 +30,12 @@ import {
   DEFAULT_REFRESH_INTERVAL,
   DEFAULT_SPEED_UNITS,
   DEFAULT_VIRTUAL_IFACE_PREFIXES
-} from "./config.js";
+} from "./utils/config.js";
 
 import {
   isVirtualIface,
   toSpeedString
-} from "./utils.js";
+} from "./utils/utils.js";
 
 const PROC_NET_DEV_PATH = "/proc/net/dev";
 
