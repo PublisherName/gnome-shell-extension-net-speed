@@ -11,9 +11,9 @@ It only shows text like `↓ 777 K/s ↑ 2.33 K/s` on the right part of panel. N
 # Usage
 
 ```
-$ git clone https://github.com/AlynxZhou/gnome-shell-extension-net-speed.git ~/.local/share/gnome-shell/extensions/netspeed@alynx.one
+$ git clone https://github.com/PublisherName/gnome-shell-extension-net-speed ~/.local/share/gnome-shell/extensions/netspeedindicator@subashghimire.info.np
 ```
 
-or install it from <https://extensions.gnome.org/extension/4478/net-speed/>.
+or install it from <https://extensions.gnome.org/extension/7367/net-speed-indicator/>.
 
 Then restart GNOME Shell and enable Net Speed from GNOME Extensions.
