@@ -77,7 +77,7 @@ export default class NetSpeedIndicator extends Extension {
     this._timeout = null;
 
     this._indicator = new Indicator();
-    Main.panel.addToStatusArea(this._uuid, this._indicator, 0, "right");
+    this._addIndicatorToPanel();
 
     this._timeout = GLib.timeout_add_seconds(
       GLib.PRIORITY_DEFAULT, this._refreshInterval, () => {
@@ -85,6 +85,20 @@ export default class NetSpeedIndicator extends Extension {
         return GLib.SOURCE_CONTINUE;
       }
     );
+  }
+
+  _addIndicatorToPanel() {
+    if (Main.panel && typeof Main.panel.addToStatusArea === "function") {
+      Main.panel.addToStatusArea(this._uuid, this._indicator, 0, "right");
+      return;
+    }
+
+    if (Main.panel && Main.panel.statusArea && Main.panel.statusArea.rightBox && typeof Main.panel.statusArea.rightBox.insert_child_at_index === "function") {
+      Main.panel.statusArea.rightBox.insert_child_at_index(this._indicator, 0);
+      return;
+    }
+
+    log(`Net Speed Indicator: unable to add panel indicator for shell ${this._metadata.shellVersion || "unknown"}`);
   }
 
   disable() {
