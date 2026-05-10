@@ -1,0 +1,13 @@
+shexli: issues_found (1 findings, 0 errors, 1 warnings)
+
+EGO-X-004  warning
+Shell code should avoid synchronous file IO APIs like `GLib.file_get_contents()` and `Gio.File.load_contents()`.
+
+  --> netspeedindicator@subashghimire.info.np.zip:extension.js:110
+  |
+  | inputFile.load_contents(null)
+  |
+
+  = rule: extensions should avoid synchronous file IO in shell code
+  = help: File Operations
+    https://gjs.guide/guides/gio/file-operations.html
