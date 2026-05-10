@@ -1,0 +1,9 @@
+[project]
+name = "gnome-shell-extension-net-speed"
+version = "0.1.0"
+description = "This GNOME Shell extension displays the current network speed (up and down) directly on your top panel."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "shexli>=0.2.1",
+]

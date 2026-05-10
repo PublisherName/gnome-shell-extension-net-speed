@@ -17,3 +17,20 @@ $ git clone https://github.com/PublisherName/gnome-shell-extension-net-speed ~/.
 or install it from <https://extensions.gnome.org/extension/7367/net-speed-indicator/>.
 
 Then restart GNOME Shell and enable Net Speed from GNOME Extensions.
+
+## Testing
+
+1. Install dependency
+```bash
+uv sync
+```
+
+2. Build a zip
+```bash
+./build
+```
+
+3. Check the zip
+```bash
+uv run shexli netspeedindicator@subashghimire.info.np.zip
+```
