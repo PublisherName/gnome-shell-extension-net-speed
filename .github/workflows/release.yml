@@ -57,16 +57,21 @@ jobs:
       - name: Verify zip exists
         run: test -f netspeedindicator@subashghimire.info.np.zip
 
-      - name: Run shexli (fail on warnings)
+      - name: Run shexli (fail on findings)
         run: |
-            set -o pipefail
-            uv run shexli netspeedindicator@subashghimire.info.np.zip | tee shexli.log
-            result_code=${PIPESTATUS[0]}
-            if grep -q "warnings" shexli.log; then
-            echo "shexli reported warnings; failing the build."
+          set -o pipefail
+          uv run shexli netspeedindicator@subashghimire.info.np.zip --format json | tee shexli.json
+          result_code=${PIPESTATUS[0]}
+
+          finding_count=$(jq '.summary.finding_count' shexli.json)
+
+          if [ "$finding_count" -ne 0 ]; then
+            echo "shexli reported $finding_count finding(s); failing the build."
+            jq '.findings' shexli.json
             exit 1
-            fi
-            exit $result_code
+          fi
+
+          exit $result_code
 
       - name: Upload zip artifact
         if: github.event_name == 'push'
