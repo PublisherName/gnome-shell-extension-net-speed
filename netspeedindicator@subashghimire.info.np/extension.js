@@ -81,9 +81,7 @@ export default class NetSpeedIndicator extends Extension {
 
     this._timeout = GLib.timeout_add_seconds(
       GLib.PRIORITY_DEFAULT, this._refreshInterval, () => {
-        const speed = this.getCurrentNetSpeed(this._refreshInterval);
-        const text = toSpeedString(speed, this._speedUnits);
-        this._indicator.setText(text);
+        this._updateSpeed();
         return GLib.SOURCE_CONTINUE;
       }
     );
@@ -102,37 +100,46 @@ export default class NetSpeedIndicator extends Extension {
     }
   }
 
-  getCurrentNetSpeed(refreshInterval) {
+  _updateSpeed() {
+    const inputFile = Gio.File.new_for_path(PROC_NET_DEV_PATH);
+    inputFile.load_contents_async(null, (file, result) => {
+      try {
+        const [, content] = file.load_contents_finish(result);
+        const speed = this._calculateSpeed(
+          this._textDecoder.decode(content)
+        );
+        const text = toSpeedString(speed, this._speedUnits);
+        this._indicator.setText(text);
+      } catch (e) {
+        console.error(`Error reading network speed: ${e.message}`);
+      }
+    });
+  }
+
+  _calculateSpeed(data) {
     const speed = { down: 0, up: 0 };
 
-    try {
-      const inputFile = Gio.File.new_for_path(PROC_NET_DEV_PATH);
-      const [, content] = inputFile.load_contents(null);
-      const sum = this._textDecoder.decode(content).split("\n")
-        .map(line => line.trim().split(/\W+/))
-        .filter(fields => fields.length > 2)
-        .map(fields => ({
-          name: fields[0],
-          down: Number.parseInt(fields[1]),
-          up: Number.parseInt(fields[9])
-        }))
-        .filter(iface => !isNaN(iface.down) && !isNaN(iface.up) && !isVirtualIface(iface.name, this._virtualIfacePrefixes))
-        .reduce((sum, iface) => ({
-          down: sum.down + iface.down,
-          up: sum.up + iface.up
-        }), { down: 0, up: 0 });
+    const sum = data.split("\n")
+      .map(line => line.trim().split(/\W+/))
+      .filter(fields => fields.length > 2)
+      .map(fields => ({
+        name: fields[0],
+        down: Number.parseInt(fields[1]),
+        up: Number.parseInt(fields[9])
+      }))
+      .filter(iface => !isNaN(iface.down) && !isNaN(iface.up) && !isVirtualIface(iface.name, this._virtualIfacePrefixes))
+      .reduce((sum, iface) => ({
+        down: sum.down + iface.down,
+        up: sum.up + iface.up
+      }), { down: 0, up: 0 });
 
-      if (this._lastSum.down === 0) this._lastSum.down = sum.down;
-      if (this._lastSum.up === 0) this._lastSum.up = sum.up;
+    if (this._lastSum.down === 0) this._lastSum.down = sum.down;
+    if (this._lastSum.up === 0) this._lastSum.up = sum.up;
 
-      speed.down = (sum.down - this._lastSum.down) / refreshInterval;
-      speed.up = (sum.up - this._lastSum.up) / refreshInterval;
+    speed.down = (sum.down - this._lastSum.down) / this._refreshInterval;
+    speed.up = (sum.up - this._lastSum.up) / this._refreshInterval;
 
-      this._lastSum = sum;
-    } catch (e) {
-      console.error(`Error reading network speed: ${e.message}`);
-    }
-
+    this._lastSum = sum;
     return speed;
   }
 }
