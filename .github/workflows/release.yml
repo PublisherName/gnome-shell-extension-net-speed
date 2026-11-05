@@ -63,11 +63,15 @@ jobs:
           uv run shexli netspeedindicator@subashghimire.info.np.zip --format json | tee shexli.json
           result_code=${PIPESTATUS[0]}
 
-          finding_count=$(jq '.summary.finding_count' shexli.json)
+          # shexli 0.2.1 hardcodes GNOME Shell 50 as the latest plausible
+          # release (EGO-M-004 flags 51 as "future"). GNOME Shell 51 is
+          # stable on Fedora 45, so filter out that known false positive
+          # until shexli is updated.
+          finding_count=$(jq '[.findings[] | select(.rule_id != "EGO-M-004")] | length' shexli.json)
 
           if [ "$finding_count" -ne 0 ]; then
             echo "shexli reported $finding_count finding(s); failing the build."
-            jq '.findings' shexli.json
+            jq '[.findings[] | select(.rule_id != "EGO-M-004")]' shexli.json
             exit 1
           fi
 

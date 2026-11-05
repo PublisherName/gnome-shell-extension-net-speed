@@ -2,14 +2,15 @@
   "name": "Net Speed Indicator",
   "description": "Show current network speed on panel.",
   "uuid": "netspeedindicator@subashghimire.info.np",
-  "url": "https://github.com/PublisherName/gnome-shell-extension-net-speed",
-  "version": 1,
+  "url": "https://github.com/psam21/gnome-shell-extension-net-speed",
+  "version": 2,
   "shell-version": [
     "45",
     "46",
     "47",
     "48",
     "49",
-    "50"
+    "50",
+    "51"
   ]
 }
