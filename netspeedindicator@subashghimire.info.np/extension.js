@@ -64,8 +64,6 @@ export default class NetSpeedIndicator extends Extension {
   constructor(metadata) {
     super(metadata);
 
-    this._metadata = metadata;
-    this._uuid = metadata.uuid;
     this._refreshInterval = metadata.refreshInterval || DEFAULT_REFRESH_INTERVAL;
     this._speedUnits = metadata.speedUnits || DEFAULT_SPEED_UNITS;
     this._virtualIfacePrefixes = metadata.virtualIfacePrefixes || DEFAULT_VIRTUAL_IFACE_PREFIXES;
@@ -89,7 +87,7 @@ export default class NetSpeedIndicator extends Extension {
 
   _addIndicatorToPanel() {
     if (Main.panel && typeof Main.panel.addToStatusArea === "function") {
-      Main.panel.addToStatusArea(this._uuid, this._indicator, 0, "right");
+      Main.panel.addToStatusArea(this.uuid, this._indicator, 0, "right");
       return;
     }
 
@@ -98,23 +96,25 @@ export default class NetSpeedIndicator extends Extension {
       return;
     }
 
-    log(`Net Speed Indicator: unable to add panel indicator for shell ${this._metadata.shellVersion || "unknown"}`);
+    log(`Net Speed Indicator: unable to add panel indicator for shell ${this.metadata['shell-version']?.join(', ') || "unknown"}`);
   }
 
   disable() {
+    if (this._timeout) {
+      GLib.source_remove(this._timeout);
+      this._timeout = null;
+    }
     if (this._indicator) {
       this._indicator.destroy();
       this._indicator = null;
     }
     this._textDecoder = null;
     this._lastSum = null;
-    if (this._timeout) {
-      GLib.source_remove(this._timeout);
-      this._timeout = null;
-    }
   }
 
   _updateSpeed() {
+    if (!this._indicator)
+      return;
     const inputFile = Gio.File.new_for_path(PROC_NET_DEV_PATH);
     inputFile.load_contents_async(null, (file, result) => {
       try {
@@ -123,7 +123,8 @@ export default class NetSpeedIndicator extends Extension {
           this._textDecoder.decode(content)
         );
         const text = toSpeedString(speed, this._speedUnits);
-        this._indicator.setText(text);
+        if (this._indicator)
+          this._indicator.setText(text);
       } catch (e) {
         console.error(`Error reading network speed: ${e.message}`);
       }
@@ -150,8 +151,8 @@ export default class NetSpeedIndicator extends Extension {
     if (this._lastSum.down === 0) this._lastSum.down = sum.down;
     if (this._lastSum.up === 0) this._lastSum.up = sum.up;
 
-    speed.down = (sum.down - this._lastSum.down) / this._refreshInterval;
-    speed.up = (sum.up - this._lastSum.up) / this._refreshInterval;
+    speed.down = Math.max(0, (sum.down - this._lastSum.down) / this._refreshInterval);
+    speed.up = Math.max(0, (sum.up - this._lastSum.up) / this._refreshInterval);
 
     this._lastSum = sum;
     return speed;
